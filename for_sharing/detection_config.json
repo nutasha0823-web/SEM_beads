@@ -1,0 +1,12 @@
+{
+    "brightness_threshold": 56,
+    "brightness_upper_threshold": 160,
+    "uniformity_threshold": 41,
+    "hough_params": {
+        "min_dist": 8,
+        "param1": 50,
+        "param2": 28,
+        "min_radius": 7,
+        "max_radius": 12
+    }
+}
