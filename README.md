@@ -12,7 +12,6 @@ This repository contains an optimized and user-friendly version of the particle 
 
 ## Files
 
-- `chip_ore_brightout_user_friendly.py`: Main command-line interface version
 - `chip_ore_brightout_simple_gui.py`: GUI version with slider controls
 - `detection_config.json`: Configuration file with default threshold values
 - `chip_ore_brightout.py`: Original file (untouched as requested)
