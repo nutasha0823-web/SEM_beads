@@ -8,7 +8,6 @@ def detect_particles_in_wells(image_path, debug=True):
     """
     
     # 1. ЗАГРУЗКА ИЗОБРАЖЕНИЯ
-    # =========================
     img = cv2.imread(image_path)
     if img is None:
         raise FileNotFoundError(f"Не удалось загрузить изображение по пути: {image_path}")
@@ -27,7 +26,6 @@ def detect_particles_in_wells(image_path, debug=True):
         plt.axis('off')
     
     # 2. ПРЕДВАРИТЕЛЬНАЯ ОБРАБОТКА (УЛУЧШЕНИЕ КАЧЕСТВА)
-    # =================================================
     # Применяем медианный фильтр для уменьшения шума, сохраняя границы
     blurred = cv2.medianBlur(gray, 5)
     
@@ -45,7 +43,6 @@ def detect_particles_in_wells(image_path, debug=True):
         plt.axis('off')
     
    # 3. ПОИСК ЛУНОК ПО БЕЛЫМ ОКРУЖНОСТЯМ
-   # ====================================
 
     # Усиливаем белые круги (вычитаем фон или инвертируем)
     # Инвертируем, чтобы белые круги стали тёмными (если нужно для HoughCircles)
@@ -59,7 +56,6 @@ def detect_particles_in_wells(image_path, debug=True):
 
     # Поиск кругов по светлым (в оригинале) объектам
     # 3. ПОИСК ЛУНОК (КРУГЛЫХ ОБЛАСТЕЙ)
-    # =================================
     # Используем преобразование Хафа для поиска кругов
     # Параметры подобраны для типичных изображений лунок:
     # - dp: разрешение накопителя (1.2 - хороший баланс)
@@ -92,18 +88,16 @@ def detect_particles_in_wells(image_path, debug=True):
         well_mask = np.zeros((height, width), dtype=np.uint8)
         
         # 4. АНАЛИЗ КАЖДОЙ ЛУНКИ
-        # ======================
         for i, (x, y, r) in enumerate(circles):
             # Создаём круговую маску для текущей лунки
             circle_mask = np.zeros((height, width), dtype=np.uint8)
             cv2.circle(circle_mask, (x, y), r, 255, -1)
             
-            # ===== ЗАЩИТА ОТ ОРЕОЛОВ =====
+            # ЗАЩИТА ОТ ОРЕОЛОВ 
             # Создаём внутреннюю маску (80% от радиуса) для анализа
             inner_r = int(r * 0.8)
             inner_mask = np.zeros((height, width), dtype=np.uint8)
             cv2.circle(inner_mask, (x, y), inner_r, 255, -1)
-            # =============================
             
             # Добавляем в общую маску лунок
             well_mask = cv2.bitwise_or(well_mask, circle_mask)
@@ -137,11 +131,11 @@ def detect_particles_in_wells(image_path, debug=True):
                     particle_count = 0
                 elif mean_brightness > brightness_upper_threshold:
                     # Слишком ярко - это не частица, а блик/артефакт/фон
-                    has_particle = False  # или True, если хочешь их считать
+                    has_particle = False  # или True, если их считать
                     particle_type = "outside"  # "вне лунки" / артефакт
                     particle_count = 0
                 elif std_brightness > uniformity_threshold:
-                    has_particle = False   # или False, если мусор не считаешь
+                    has_particle = False   # или False, если мусор не считать
                     particle_type = "debris"
                     particle_count = 1
                 else:
@@ -152,7 +146,7 @@ def detect_particles_in_wells(image_path, debug=True):
             if debug:
                 print(f"Лунка {i+1}: ярк={mean_brightness:.1f}, std={std_brightness:.1f} → {particle_type}")
 
-# Сохраняем результат (СТРОКИ 110-130)
+# Сохраняем результат 
             results.append({
     'well_id': i+1,
     'center': (x, y),
@@ -200,7 +194,6 @@ def detect_particles_in_wells(image_path, debug=True):
         print("Попробуйте настроить параметры HoughCircles или улучшить качество изображения.")
     
     # 5. СТАТИСТИКА И ФИНАЛЬНЫЙ ВЫВОД
-    # ===============================
     total_wells = len(results)
     wells_with_particles = sum(1 for r in results if r['has_particle'])
     wells_with_debris = sum(1 for r in results if r.get('particle_type') == 'debris')
@@ -219,8 +212,7 @@ def detect_particles_in_wells(image_path, debug=True):
         plt.subplot(2, 3, 5)
         plt.axis('off')
         text_str = (
-            f"СТАТИСТИКА\n"
-            f"Лунок: {total_wells}\n"
+            f"Кол-во лунок: {total_wells}\n"
             f"С частицами: {wells_with_real_particles}\n"
             f"С мусором: {wells_with_debris}\n"
             f"Вне лунки: {wells_with_outside}\n"
@@ -253,29 +245,24 @@ def print_results_summary(results):
     total_wells = len(results)
     wells_with_particles = sum(1 for r in results if r['has_particle'])
     
-    print("\n" + "="*50)
-    print("РЕЗУЛЬТАТЫ АНАЛИЗА ЛУНОК")
-    print("="*50)
+    print("Результаты анализа лунок")
     print(f"Всего обнаружено лунок: {total_wells}")
     print(f"Лунок с частицами: {wells_with_particles}")
     print(f"Пустых лунок: {total_wells - wells_with_particles}")
     print("\nДетали по лункам:")
-    print("-" * 50)
     
     for r in results:
-        status = "ЕСТЬ частица" if r['has_particle'] else "пусто"
+        status = "Есть частица" if r['has_particle'] else "пусто"
         print(f"Лунка {r['well_id']:2d}: центр {r['center']}, "
               f"радиус {r['radius']:2d} - {status} "
               f"(яркость: {r['mean_brightness']:.1f})")
-# =====================================================================
 # ПРИМЕР ИСПОЛЬЗОВАНИЯ
-# =====================================================================
 if __name__ == "__main__":
-    # Путь к вашему изображению (измените на актуальный)
-    image_path = r"C:\Users\nutas\chip_waffle_1_151NP_1.jpg"  # Замените на путь к вашему файлу
+    # Путь к изображению (изменить на актуальный)
+    image_path = r"C:\Users\nutas\chip_waffle_1_151NP_1.jpg"  
     
     # Для тестирования создадим синтетическое изображение,
-    # если у вас нет реального файла
+    # если нет реального файла
     import os
     if not os.path.exists(image_path):
         print(f"Файл {image_path} не найден. Создаю тестовое изображение...")
