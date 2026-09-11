@@ -65,9 +65,9 @@ def detect_particles_in_wells(image_path, debug=True):
         blurred_inv,  # или blurred, если круги и так тёмные
         cv2.HOUGH_GRADIENT,
         dp=1.5,
-        minDist=8,
-        param1=50,
-        param2=28,
+        minDist=20,
+        param1=8,
+        param2=23,
         minRadius=7,
         maxRadius=12
     )
@@ -119,9 +119,9 @@ def detect_particles_in_wells(image_path, debug=True):
                 std_brightness = np.std(well_pixels)
 
                 # Пороги подбираются под каждое изображение
-                brightness_threshold = 56
-                brightness_upper_threshold = 160 # верхний порог (частица vs вне лунки)
-                uniformity_threshold = 41
+                brightness_threshold = 45
+                brightness_upper_threshold = 185 # верхний порог (частица vs вне лунки)
+                uniformity_threshold = 57
 
                 if mean_brightness < brightness_threshold:
                     has_particle = False
@@ -227,7 +227,7 @@ def detect_particles_in_wells(image_path, debug=True):
         plt.subplot(2, 3, 6)
         brightnesses = [r['mean_brightness'] for r in results]
         plt.hist(brightnesses, bins=20, color='blue', alpha=0.7)
-        plt.axvline(x=56, color='red', linestyle='--', label='Порог')  # Тот же порог, что в коде
+        plt.axvline(x=75, color='red', linestyle='--', label='Порог')  # Тот же порог, что в коде
         plt.xlabel('Средняя яркость лунки')
         plt.ylabel('Количество лунок')
         plt.title('Распределение яркости лунок')
@@ -257,7 +257,7 @@ def print_results_summary(results):
 # Путь к изображению или тест использования на синтетическом
 if __name__ == "__main__":
     # Путь к изображению (изменить на актуальный)
-    image_path = r"C:\Users\nutas\chip_waffle_1_151NP_1.jpg"  
+    image_path = r"C:\chip1_clean1st.jpg"
     
     # Для тестирования создадим синтетическое изображение,
     # если нет реального файла
@@ -287,14 +287,9 @@ if __name__ == "__main__":
         print(f"Тестовое изображение сохранено как {image_path}")
     
     # Запускаем анализ
-    try:
-        results, annotated_img = detect_particles_in_wells(image_path, debug=True)
-        print_results_summary(results)
-        
-        # Сохраняем результат
-        output_path = "wells_analysis_result.jpg"
-        cv2.imwrite(output_path, annotated_img)
-        print(f"\nРезультат сохранён в {output_path}")
-        
-    except Exception as e:
-        print(f"Ошибка при анализе: {e}")
+    results, _clean, annotated_img = detect_particles_in_wells(image_path, debug=True)
+    print_results_summary(results)
+
+    output_path = "wells_analysis_result.jpg"
+    cv2.imwrite(output_path, annotated_img)
+    print(f"\nРезультат сохранён в {output_path}")

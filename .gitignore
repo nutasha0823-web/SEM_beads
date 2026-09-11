@@ -6,3 +6,4 @@ venv/
 *.png
 disparity.png
 .DS_Store
+.vscode
