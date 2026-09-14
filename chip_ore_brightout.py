@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -33,9 +34,9 @@ def _analyze_single_well(args):
         mean_brightness = float(np.mean(well_pixels))
         std_brightness = float(np.std(well_pixels))
 
-        brightness_threshold = 45
-        brightness_upper_threshold = 185
-        uniformity_threshold = 57
+        brightness_threshold = 100
+        brightness_upper_threshold = 130
+        uniformity_threshold = 60
 
         if mean_brightness < brightness_threshold:
             has_particle = False
@@ -114,8 +115,8 @@ def detect_particles_in_wells(image_path, debug=False, max_workers=None):
         cv2.HOUGH_GRADIENT,
         dp=1.5,
         minDist=20,
-        param1=8,
-        param2=23,
+        param1=10,
+        param2=30,
         minRadius=7,
         maxRadius=12
     )
@@ -246,42 +247,31 @@ def print_results_summary(results):
         print(f"Лунка {r['well_id']:2d}: центр {r['center']}, "
               f"радиус {r['radius']:2d} - {status} "
               f"(яркость: {r['mean_brightness']:.1f})")
-# Путь к изображению или тест использования на синтетическом
-if __name__ == "__main__":
-    # Путь к изображению (изменить на актуальный)
-    image_path = r"C:\chip1_clean1st.jpg"
-    
-    # Для тестирования создадим синтетическое изображение,
-    # если нет реального файла
-    import os
-    if not os.path.exists(image_path):
-        print(f"Файл {image_path} не найден. Создаю тестовое изображение...")
-        
-        # Создаём тестовое изображение с лунками
-        test_img = np.ones((400, 600, 3), dtype=np.uint8) * 30  # Тёмный фон
-        
-        # Рисуем несколько лунок
-        wells_pos = [(150, 150), (300, 150), (450, 150),
-                     (150, 300), (300, 300), (450, 300)]
-        
-        for i, (x, y) in enumerate(wells_pos):
-            # Тёмная лунка
-            cv2.circle(test_img, (x, y), 40, (20, 20, 20), -1)
-            cv2.circle(test_img, (x, y), 40, (100, 100, 100), 1)
-            
-            # В некоторые лунки добавляем "частицы" (светлые точки)
-            if i % 2 == 0:  # чётные лунки будут с частицами
-                cv2.circle(test_img, (x-10, y-10), 5, (220, 220, 220), -1)
-                cv2.circle(test_img, (x+15, y+5), 7, (200, 200, 200), -1)
-                cv2.circle(test_img, (x-5, y+20), 4, (240, 240, 240), -1)
-        
-        cv2.imwrite(image_path, test_img)
-        print(f"Тестовое изображение сохранено как {image_path}")
-    
-    # Запускаем анализ
-    results, _clean, annotated_img = detect_particles_in_wells(image_path, debug=False)
-    print_results_summary(results)
 
-    output_path = "wells_analysis_result.jpg"
-    cv2.imwrite(output_path, annotated_img)
-    print(f"\nРезультат сохранён в {output_path}")
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Detect particles in wells")
+    parser.add_argument("image", nargs="?", help="path to the SEM image")
+    parser.add_argument("-o", "--output", default="wells_analysis_result.jpg",
+                       help="where to write the annotated image")
+    parser.add_argument("--no-debug", action="store_true",
+                       help="skip the matplotlib figure")
+    args = parser.parse_args()
+    
+    # Если изображение не передано как аргумент, запрашиваем его
+    if args.image is None:
+        args.image = input("\nВведите путь к SEM изображению (или перетащите файл сюда): ").strip().strip('"')
+    
+    # Проверяем, что файл удалось открыть (cv2 вернёт None, если файла нет)
+    test_img = cv2.imread(args.image)
+    if test_img is None:
+        print(f"\nОшибка: не удалось открыть файл '{args.image}'")
+        print("Проверьте путь и попробуйте снова.\n")
+        exit()
+    
+    results, _clean, annotated_img = detect_particles_in_wells(
+        args.image, debug=not args.no_debug
+    )
+    
+    print_results_summary(results)
+    cv2.imwrite(args.output, annotated_img)
+    print(f"\nРезультат сохранён в {args.output}\n")
