@@ -64,16 +64,9 @@ This is currently the only entry point that reads and writes the config file.
 python chip_ore_brightout.py
 ```
 
-> **The CLI scripts do not work as shipped.** They crash on a return-value
-> mismatch before writing any output, they take no arguments (the image path is
-> hardcoded to a Windows path near the bottom of the file), and they ignore
-> `detection_config.json` entirely — their thresholds are hardcoded inside the
-> function. See [REVIEW.md](REVIEW.md) for the details and
-> [FIXING_GUIDE.md](FIXING_GUIDE.md) steps 1-3 for the fix.
-
 ## Configuration
 
-`detection_config.json` holds all tunable parameters. **Read by the GUI only** —
+`detection_config.json` holds all tunable parameters. Read by the GUI only —
 see the warning above.
 
 ```json
@@ -131,21 +124,4 @@ statistics, so the thresholds need re-tuning whenever imaging conditions change.
 |---|---|
 | `chip_ore_brightout_simple_gui.py` | **Main entry point.** Tk GUI, four-class detection, reads/writes the config file. |
 | `chip_ore_brightout.py` | CLI version of the same detector. Thresholds hardcoded; currently broken. |
-| `chip_1.py` | Earlier variant: two classes only, threshold 70. Kept for reference. |
-| `chip_2.py` | Earlier variant: three classes, thresholds 65 / 37. Kept for reference. |
 | `detection_config.json` | Tunable parameters (GUI only). |
-| `for_sharing/` | Hand-copied distribution bundle: a stale copy of the two scripts, a Russian user manual, and sample SEM images. Not kept in sync automatically. |
-| `part_from_StereoVision/` | Unrelated dual-camera capture scripts adapted from the StereoVision project. Not part of the detection pipeline. |
-| `REVIEW.md` | Code review findings. |
-| `FIXING_GUIDE.md` | Step-by-step remediation plan. |
-
-`chip_1.py`, `chip_2.py` and `chip_ore_brightout.py` are near-identical copies of
-one ~300-line function that differ only in thresholds and input image. Consolidating
-them is [FIXING_GUIDE.md](FIXING_GUIDE.md) step 7.
-
-## Known issues
-
-The CLI is broken, the GUI and CLI use different preprocessing (so the same
-config gives different well counts in each), and `for_sharing/` has drifted from
-the root copies. Full list in [REVIEW.md](REVIEW.md); ordered fixes in
-[FIXING_GUIDE.md](FIXING_GUIDE.md).
